@@ -11,37 +11,36 @@ use Fuel\Core\Format;
  * Fixtures Task
  *
  * @package Fuel
- * @version 1.0
- * @author  Rui Mashita
+ * @version 1.1
+ * @author  Takuya Wakisaka
  * @license MIT License
- * @link    https://github.com/ruimashita
+ * @link    https://github.com/ruimashita/fuelphp_fixtures_task
  */
-
 class Fixtures
 {
-
-	/**
-	 * This method gets ran when a valid method name is not used in the command.
-	 *
-	 * Usage (from command line):
-	 *
-	 * php oil r fixtures
-	 *
-	 * @return string
-	 */
+	
+/**
+ * This method gets ran when a valid method name is not used in the command.
+ *
+ * Usage (from command line):
+ *
+ * php oil r fixtures
+ *
+ * @return string
+ */
 	public static function run()
 	{
 		return static::help();
 	}
-
-
+	
+	
 	public static function dump()
 	{
 		$num = Cli::option('n') ? (int) Cli::option('n') : 5;
 		$dir = Cli::option('d') ? Cli::option('d') : APPPATH . 'tests/fixture';
 		$env = Cli::option('env') ? Cli::option('env') : Fuel::TEST;
 		Fuel::$env = $env;
-
+		
 		if (!is_dir($dir))
 		{
 			if (Cli::option('d')) 
@@ -57,9 +56,14 @@ class Fixtures
 		if(empty($tables)){
 			$tables = DB::list_tables();
 		}
-
+		
 		foreach ($tables as $table)
 		{
+			if($prefix = \DB::table_prefix() )
+			{
+				$table = substr_replace($table, '', 0, strlen($prefix));
+			}
+			
 			if (DBUtil::table_exists($table))
 			{
 				$result = DB::select('*')->from($table)->limit($num)->execute();
@@ -69,10 +73,10 @@ class Fixtures
 				if (file_exists($file))
 				{
 					rename($file, $file . '.old');
-					echo 'Backed-up: ' . $file . PHP_EOL;
+					echo 'Fixture backed-up: ' . $file . PHP_EOL;
 				}
 				file_put_contents($file, $data);
-				echo 'Created: ' . $file . PHP_EOL;
+				echo 'Fixture created: ' . $file . PHP_EOL;
 			}
 			else
 			{
@@ -80,8 +84,8 @@ class Fixtures
 			}
 		}
 	}
-
-
+	
+	
 	
 	public static function load()
 	{
@@ -92,7 +96,7 @@ class Fixtures
 		}
 		$env = Cli::option('env') ? Cli::option('env') : Fuel::TEST;
 		Fuel::$env = $env;
-
+		
 		$args = func_get_args();
 		if(empty($args))
 		{
